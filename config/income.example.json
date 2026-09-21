@@ -1,0 +1,16 @@
+{
+  "sources": [],
+  "note": "AFTER-TAX (net, take-home) income per source - never gross. Savings goals can be set as a percentage of this, so a gross figure here would commit money that never reaches the account; a source with basis set to anything but \"net\" is excluded from every calculation. effective_from/effective_to are OPTIONAL - leave both null and the entry is always in effect, which is what you want if your pay is steady. They only matter when pay changes: closing the old entry and adding a new one keeps older months accurate instead of applying today's salary retroactively. The UI's Replace button does this for you.",
+  "example": {
+    "id": "salary-a",
+    "name": "Salary - Member A",
+    "net_monthly_cents": 412000,
+    "basis": "net",
+    "cadence": "semimonthly",
+    "effective_from": "2026-01-01",
+    "effective_to": null,
+    "account": "boa-checking",
+    "match": "payroll",
+    "note": "cadence is one of: monthly, semimonthly, biweekly, weekly, irregular"
+  }
+}

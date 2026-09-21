@@ -1,0 +1,30 @@
+{
+  "goals": [],
+  "note": "Savings goals, highest priority first. Two kinds: a RATE goal (the common one) simply saves a share of income every month - no target amount, no date, and success is whether the money actually moved. A TARGET goal saves a specific amount by a specific date. Each goal can name the account its contributions land in (account_match), so two goals funded from two accounts are tracked separately.",
+  "example_rate_goal": {
+    "id": "monthly-savings",
+    "name": "Monthly savings",
+    "goal_type": "rate",
+    "contribution_type": "percent",
+    "percent_of_net_income": 20.0,
+    "account_match": "",
+    "priority": 1,
+    "active": true,
+    "_note": "Save 20% of after-tax income every month. contribution_type can also be 'fixed' with contribution_fixed_cents. No target_cents or target_date needed."
+  },
+  "example_target_goal": {
+    "id": "down-payment",
+    "name": "House down payment",
+    "goal_type": "target",
+    "target_cents": 12000000,
+    "target_date": "2029-06-01",
+    "current_balance_cents": 3850000,
+    "balance_as_of": "2026-09-01",
+    "contribution_type": "percent",
+    "percent_of_net_income": 15.0,
+    "account_match": "vanguard",
+    "priority": 2,
+    "active": true,
+    "_note": "Use this only when saving toward a specific sum by a specific date. The report then also reports whether the contribution plan is large enough to reach it in time."
+  }
+}

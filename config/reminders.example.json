@@ -1,0 +1,12 @@
+{
+  "reminders": [],
+  "note": "Things to act on, shown at the top of the dashboard. Each has text, an optional due date, and a tag (tax, admin, spending, goal). Spending items are generated automatically from the budget and are not stored here.",
+  "example": {
+    "id": "fsa-limit",
+    "text": "Dependent-care FSA is over the joint limit",
+    "detail": "Reduce elections at open enrollment; bring both W-2s (Box 10) to filing.",
+    "tag": "tax",
+    "due": "2026-11-15",
+    "active": true
+  }
+}

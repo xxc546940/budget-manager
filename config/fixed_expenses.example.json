@@ -1,0 +1,18 @@
+{
+  "expenses": [],
+  "note": "Known recurring commitments: mortgage, car loan, daycare, utilities, insurance. These are NOT added to spending - they already arrive in your checking CSV. Declaring them lets the analyzer verify each one actually posted, flag when an amount changes, and separate committed money from what is genuinely free to spend.",
+  "example": {
+    "id": "mortgage",
+    "name": "Mortgage",
+    "category": "Housing",
+    "amount_cents": 285000,
+    "cadence": "monthly",
+    "due_day": 1,
+    "account": "boa-checking",
+    "match": "sunset apartments",
+    "variable": false,
+    "effective_from": "2026-01-01",
+    "effective_to": null,
+    "note": "cadence: monthly, quarterly, annual, biweekly, weekly. Set variable=true for bills like utilities that change each month - the amount is then treated as an estimate and never flagged for drift."
+  }
+}

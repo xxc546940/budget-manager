@@ -1,0 +1,55 @@
+# ---------------------------------------------------------------------------
+# PERSONAL FINANCIAL DATA - never commit any of this.
+# Templates live alongside as *.example.json and ARE tracked.
+# ---------------------------------------------------------------------------
+
+# Your actual figures: income, mortgage, savings balances, goals
+config/budget.json
+config/income.json
+config/fixed_expenses.json
+config/goals.json
+config/reminders.json
+config/rules.json
+config/*.json.tmp
+
+# Raw bank exports and the transaction ledger.
+# Excluding contents rather than the directory itself, so the empty folders
+# survive a clone - git cannot re-include a file inside an excluded directory.
+data/*
+!data/inbox/
+!data/archive/
+data/inbox/*
+data/archive/*
+!data/inbox/.gitkeep
+!data/archive/.gitkeep
+
+# Generated reports contain the full financial picture
+reports/*
+!reports/.gitkeep
+
+# Credentials. The app password belongs in a file OUTSIDE the repo, but ignore
+# these names too in case one is ever created here by mistake.
+*app-password*
+*app_password*
+.env
+secrets.json
+
+# Older reports
+reports/archive/
+
+# Anything you stash locally
+*.local.json
+/private/
+narrative.json
+
+# ---------------------------------------------------------------------------
+# Ordinary noise
+# ---------------------------------------------------------------------------
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+.venv/
+venv/
+.idea/
+.vscode/

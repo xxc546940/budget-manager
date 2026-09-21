@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Budget Inputs</title>
+<style>
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  color-scheme:light;
+  --plane:#f9f9f7; --surface:#fcfcfb; --sunken:#f2f1ed;
+  --text:#0b0b0b; --text-2:#52514e; --muted:#898781;
+  --border:rgba(11,11,11,.12); --line:#e1e0d9;
+  --accent:#2a78d6; --accent-ink:#fff;
+  --good:#0ca30c; --critical:#d03b3b; --warning:#fab219;
+  --success-text:#006300;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --plane:#0d0d0d; --surface:#1a1a19; --sunken:#111110;
+    --text:#fff; --text-2:#c3c2b7; --muted:#898781;
+    --border:rgba(255,255,255,.14); --line:#2c2c2a;
+    --accent:#3987e5; --success-text:#0ca30c;
+  }
+}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--plane);color:var(--text);
+     font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+.wrap{max-width:1040px;margin:0 auto;padding:28px 16px 80px}
+h1{font-size:21px;font-weight:650;margin:0 0 3px;letter-spacing:-.01em}
+.sub{color:var(--text-2);font-size:13.5px;margin-bottom:20px}
+.sub code{background:var(--sunken);padding:1px 5px;border-radius:4px;font-size:12.5px}
+
+.tabs{display:flex;gap:2px;background:var(--sunken);padding:3px;border-radius:10px;
+      margin-bottom:18px;overflow-x:auto}
+.tabs button{flex:1;min-width:96px;border:0;background:transparent;color:var(--text-2);
+     font:inherit;font-size:13.5px;font-weight:550;padding:8px 12px;border-radius:7px;cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--surface);color:var(--text);
+     box-shadow:0 1px 3px rgba(0,0,0,.09)}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;
+      padding:20px;margin-bottom:14px}
+.card h2{font-size:12.5px;font-weight:650;letter-spacing:.06em;text-transform:uppercase;
+      color:var(--text-2);margin:0 0 4px}
+.card .hint{font-size:13px;color:var(--text-2);margin:0 0 16px;max-width:64ch}
+
+.row{border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;
+     background:var(--plane)}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+label{display:block;font-size:11.5px;letter-spacing:.04em;text-transform:uppercase;
+      color:var(--muted);margin-bottom:4px;font-weight:600}
+input,select{width:100%;font:inherit;font-size:14px;padding:7px 9px;border-radius:7px;
+      border:1px solid var(--border);background:var(--surface);color:var(--text)}
+input:focus,select:focus{outline:2px solid var(--accent);outline-offset:-1px;border-color:transparent}
+input[type=checkbox]{width:auto;margin-right:7px;accent-color:var(--accent)}
+.chk{display:flex;align-items:center;font-size:13.5px;color:var(--text-2);margin-top:20px}
+.rowhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:10px}
+.rowhead .idx{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.05em}
+details.dates{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+details.dates summary{cursor:pointer;font-size:12.5px;color:var(--muted);list-style:none;
+  display:flex;align-items:center;gap:6px}
+details.dates summary::-webkit-details-marker{display:none}
+details.dates summary::before{content:"\203a";display:inline-block;transition:transform .15s;
+  font-size:15px;line-height:1}
+details.dates[open] summary::before{transform:rotate(90deg)}
+details.dates summary:hover{color:var(--text-2)}
+
+button.btn{font:inherit;font-size:13.5px;font-weight:600;padding:8px 15px;border-radius:8px;
+      border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer}
+button.btn:hover{background:var(--sunken)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+button.primary:hover{filter:brightness(1.07)}
+button.link{background:none;border:0;color:var(--critical);font-size:12.5px;cursor:pointer;
+      padding:4px 6px;font-weight:600}
+.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:6px}
+.saved{font-size:13px;color:var(--success-text);font-weight:600;opacity:0;transition:opacity .2s}
+.saved.on{opacity:1}
+
+.tot{display:flex;gap:26px;flex-wrap:wrap;padding:14px 0 0;margin-top:14px;
+     border-top:1px solid var(--line)}
+.tot div .l{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.tot div .v{font-size:19px;font-weight:600;margin-top:2px;letter-spacing:-.01em}
+.warn{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--warning);
+      border-radius:8px;padding:12px 14px;margin-bottom:12px;font-size:13.5px;color:var(--text-2)}
+.warn b{color:var(--text)}
+.empty{color:var(--muted);font-size:13.5px;padding:18px 0;text-align:center}
+.drop{border:1.5px dashed var(--border);border-radius:10px;padding:28px 16px;text-align:center;
+      color:var(--text-2);font-size:13.5px;background:var(--plane);cursor:pointer}
+.drop.over{border-color:var(--accent);background:var(--sunken)}
+pre.out{background:var(--sunken);border-radius:8px;padding:12px;font-size:12px;overflow:auto;
+      max-height:280px;margin:12px 0 0;color:var(--text-2);white-space:pre-wrap}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);
+   padding:0 8px 8px 0;border-bottom:1px solid var(--line);font-weight:600}
+td{padding:7px 8px 7px 0;border-bottom:1px solid var(--line)}
+td.n,th.n{text-align:right;padding-right:0;font-variant-numeric:tabular-nums}
+td input{max-width:130px;margin-left:auto;text-align:right}
+@media (max-width:560px){ .grid{grid-template-columns:1fr 1fr} .wrap{padding:20px 12px 60px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Budget inputs</h1>
+  <div class="sub">Saves to <code>config/*.json</code> in the repo. Local only &mdash; nothing leaves this machine.</div>
+
+  <div id="warnings"></div>
+
+  <div class="tabs" role="tablist">
+    <button role="tab" data-tab="income" aria-selected="true">Income</button>
+    <button role="tab" data-tab="fixed" aria-selected="false">Fixed expenses</button>
+    <button role="tab" data-tab="goals" aria-selected="false">Savings goals</button>
+    <button role="tab" data-tab="envelopes" aria-selected="false">Envelopes</button>
+    <button role="tab" data-tab="files" aria-selected="false">CSV files</button>
+  </div>
+
+  <div id="panel"></div>
+</div>
+
+<script>
+const TOKEN = "__TOKEN__";
+const TABS = ["income","fixed","goals","envelopes","files"];
+let DATA = null;
+// Deep-linkable so a tab can be bookmarked or linked to.
+let TAB = TABS.includes(new URLSearchParams(location.search).get("tab"))
+  ? new URLSearchParams(location.search).get("tab") : "income";
+
+const $ = (h) => { const d = document.createElement("div"); d.innerHTML = h.trim(); return d.firstChild; };
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmtD = (d) => "$" + (d||0).toLocaleString("en-US",{maximumFractionDigits:0});
+const money = (c) => "$" + ((c||0)/100).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+const PER_YEAR = {weekly:52,biweekly:26,semimonthly:24,monthly:12,quarterly:4,semiannual:2,annual:1,irregular:12};
+const perMonth = (amt, cad) => (parseFloat(amt)||0) * (PER_YEAR[cad]||12) / 12;
+
+async function api(path, method="GET", body) {
+  const r = await fetch(path, {
+    method,
+    headers: {"Content-Type":"application/json", "X-Budget-Token": TOKEN},
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+
+async function load() {
+  DATA = await api("/api/config");
+  renderWarnings();
+  render();
+}
+
+function renderWarnings() {
+  const el = document.getElementById("warnings");
+  el.innerHTML = "";
+  (DATA.warnings || []).forEach(w => el.appendChild($(`<div class="warn">${esc(w)}</div>`)));
+}
+
+/* ---------------------------------------------------------------- fields */
+function field(label, name, value, type="text", attrs="") {
+  return `<div><label>${esc(label)}</label>
+    <input name="${name}" type="${type}" value="${esc(value ?? "")}" ${attrs}></div>`;
+}
+function select(label, name, value, options) {
+  const opts = options.map(o => `<option value="${esc(o)}"${o===value?" selected":""}>${esc(o)}</option>`).join("");
+  return `<div><label>${esc(label)}</label><select name="${name}">${opts}</select></div>`;
+}
+
+const SPECS = {
+  income: {
+    title: "Income sources",
+    hint: "Net take-home per month, per source. Leave the dates alone unless your pay actually changes — an entry with no dates is simply always in effect. When it does change, hit “Replace”: it closes the old entry and opens a new one, so re-running an older month still uses the pay you had then.",
+    add: () => ({name:"", net_monthly:"", cadence:"semimonthly", effective_from:"", effective_to:"", account:"", match:"payroll"}),
+    row: (r, i) => {
+      const dated = !!(r.effective_from || r.effective_to);
+      const summary = dated
+        ? "In effect " + esc(r.effective_from || "always") + " → " + esc(r.effective_to || "now")
+        : "Always in effect — add a date range only if this amount changed";
+      return `
+      <div class="grid">
+        ${field("Source", "name", r.name)}
+        ${field("Net per month", "net_monthly", r.net_monthly, "text", 'inputmode="decimal" placeholder="4120.00"')}
+        ${select("Paid", "cadence", r.cadence || "semimonthly", ["weekly","biweekly","semimonthly","monthly","irregular"])}
+        ${field("Deposits into", "account", r.account, "text", 'placeholder="boa-checking"')}
+        ${field("Matches text", "match", r.match, "text", 'placeholder="payroll"')}
+      </div>
+      <details class="dates"${dated ? " open" : ""}>
+        <summary>${summary}</summary>
+        <div class="grid" style="margin-top:10px">
+          ${field("From", "effective_from", r.effective_from, "date")}
+          ${field("Until", "effective_to", r.effective_to, "date")}
+        </div>
+      </details>`;
+    },
+    total: (rows) => {
+      const today = new Date().toISOString().slice(0,10);
+      const live = rows.filter(r => (!r.effective_to || r.effective_to >= today) && (!r.effective_from || r.effective_from <= today));
+      const m = live.reduce((a,r) => a + (parseFloat(r.net_monthly)||0), 0);
+      return [["Net monthly income", "$"+m.toLocaleString("en-US",{minimumFractionDigits:2})],
+              ["Per year", "$"+(m*12).toLocaleString("en-US",{maximumFractionDigits:0})],
+              ["Active sources", String(live.length)]];
+    },
+  },
+  fixed: {
+    title: "Fixed expenses",
+    hint: "Mortgage, car loan, daycare, utilities, insurance — commitments you have already made. These are not added to spending; they already arrive in your checking CSV. Declaring them lets the analyzer confirm each one posted, flag when an amount changes, and work out what is genuinely free to spend. “Matches text” is how it finds the transaction.",
+    add: () => ({name:"", category:"Housing", amount:"", cadence:"monthly", due_day:1, account:"", match:"", variable:false, effective_from:new Date().toISOString().slice(0,10), effective_to:""}),
+    row: (r, i) => `
+      <div class="grid">
+        ${field("Name", "name", r.name, "text", 'placeholder="Mortgage"')}
+        ${select("Category", "category", r.category || "Housing", DATA.categories)}
+        ${field("Amount", "amount", r.amount, "text", 'inputmode="decimal" placeholder="2850.00"')}
+        ${select("Every", "cadence", r.cadence || "monthly", ["weekly","biweekly","monthly","quarterly","semiannual","annual"])}
+        ${field("Due day", "due_day", r.due_day ?? 1, "number", 'min="1" max="31"')}
+        ${field("Paid from", "account", r.account, "text", 'placeholder="boa-checking"')}
+        ${field("Matches text", "match", r.match, "text", 'placeholder="sunset apartments"')}
+        <div class="chk"><label style="display:flex;align-items:center;text-transform:none;
+          letter-spacing:0;font-size:13.5px;color:var(--text-2);margin:0;font-weight:500">
+          <input type="checkbox" name="variable" ${r.variable?"checked":""}> Amount varies</label></div>
+      </div>`,
+    total: (rows) => {
+      const m = rows.reduce((a,r) => a + perMonth(r.amount, r.cadence), 0);
+      const inc = (DATA.derived.monthly_income_cents||0)/100;
+      return [["Committed monthly", "$"+m.toLocaleString("en-US",{minimumFractionDigits:2})],
+              ["Per year", "$"+(m*12).toLocaleString("en-US",{maximumFractionDigits:0})],
+              ["Share of income", inc ? (m/inc*100).toFixed(0)+"%" : "—"]];
+    },
+  },
+  goals: {
+    title: "Savings goals",
+    hint: "A goal can simply be a rate — “save 20% of after-tax income every month” — with no target amount and no date. Use a target goal only when you are saving toward a specific sum by a specific date. If two goals are funded from different accounts, set “Funded from” on each so contributions are never counted toward both.",
+    add: () => ({name:"", goal_type:"rate", target:"", target_date:"", current_balance:"", balance_as_of:new Date().toISOString().slice(0,10), account_match:"", priority:1, active:true, contribution_type:"percent", percent_of_net_income:20, contribution_fixed:""}),
+    row: (r, i) => {
+      const gtype = r.goal_type || (parseFloat(r.target) ? "target" : "rate");
+      const kind = r.contribution_type || "percent";
+      const planField = kind === "percent"
+        ? field("% of after-tax income", "percent_of_net_income", r.percent_of_net_income ?? "", "number", 'min="0" max="100" step="0.5"')
+        : field("Amount per month", "contribution_fixed", r.contribution_fixed, "text", 'inputmode="decimal" placeholder="1400.00"');
+      const targetFields = gtype === "target" ? `
+        ${field("Target amount", "target", r.target, "text", 'inputmode="decimal" placeholder="120000.00"')}
+        ${field("By", "target_date", r.target_date, "date")}
+        ${field("Saved so far", "current_balance", r.current_balance, "text", 'inputmode="decimal"')}
+        ${field("Balance as of", "balance_as_of", r.balance_as_of, "date")}` : "";
+      return `
+      <div class="grid">
+        ${field("Goal", "name", r.name, "text", 'placeholder="Monthly savings"')}
+        ${select("Goal type", "goal_type", gtype, ["rate","target"])}
+        ${select("Contribute", "contribution_type", kind, ["percent","fixed"])}
+        ${planField}
+      </div>
+      ${targetFields ? `<div class="grid" style="margin-top:12px">${targetFields}</div>` : ""}
+      <div class="grid" style="margin-top:12px">
+        ${field("Funded from", "account_match", r.account_match, "text", 'placeholder="vanguard"')}
+        ${field("Priority", "priority", r.priority ?? 1, "number", 'min="1" max="99"')}
+        <div class="chk"><label style="display:flex;align-items:center;text-transform:none;
+          letter-spacing:0;font-size:13.5px;color:var(--text-2);margin:0;font-weight:500">
+          <input type="checkbox" name="active" ${r.active!==false?"checked":""}> Active</label></div>
+      </div>
+      <div style="font-size:12.5px;color:var(--muted);margin-top:10px" data-pace></div>`;
+    },
+    total: (rows) => {
+      const inc = (DATA.derived.monthly_income_cents||0)/100;
+      const fix = (DATA.derived.fixed_monthly_cents||0)/100;
+      const live = rows.filter(r=>r.active!==false);
+      const need = live.reduce((a,r) => {
+        const kind = r.contribution_type || "percent";
+        const gtype = r.goal_type || (parseFloat(r.target) ? "target" : "rate");
+        if (gtype === "rate") {
+          return a + (kind === "percent" ? inc*(parseFloat(r.percent_of_net_income)||0)/100
+                                         : (parseFloat(r.contribution_fixed)||0));
+        }
+        const t = parseFloat(r.target)||0, c = parseFloat(r.current_balance)||0;
+        if (!r.target_date || t<=c) return a;
+        const months = Math.max((new Date(r.target_date) - new Date())/(1000*60*60*24*30.44), 0.1);
+        return a + (t-c)/months;
+      }, 0);
+      const plan = live.reduce((a,r) => {
+        const kind = r.contribution_type || "percent";
+        if (kind === "percent") return a + inc*(parseFloat(r.percent_of_net_income)||0)/100;
+        return a + (parseFloat(r.contribution_fixed)||0);
+      }, 0);
+      const free = inc - fix - plan;
+      // No dates exist when every goal is a rate goal, so don't claim any.
+      const allRate = live.length && live.every(r =>
+        (r.goal_type || (parseFloat(r.target) ? "target" : "rate")) === "rate");
+      return [["Planned savings", fmtD(plan) + (inc ? ` (${(plan/inc*100).toFixed(0)}% of net)` : "")],
+              [allRate ? "Needed each month" : "Needed to hit every date", fmtD(need)],
+              ["Free after commitments + savings", (free<0?"-":"")+fmtD(Math.abs(free))]];
+    },
+  },
+};
+
+/* ---------------------------------------------------------------- render */
+function render() {
+  document.querySelectorAll(".tabs button").forEach(b =>
+    b.setAttribute("aria-selected", String(b.dataset.tab === TAB)));
+  const panel = document.getElementById("panel");
+  panel.innerHTML = "";
+  if (TAB === "envelopes") return renderEnvelopes(panel);
+  if (TAB === "files") return renderFiles(panel);
+  renderList(panel, TAB);
+}
+
+function renderList(panel, key) {
+  const spec = SPECS[key];
+  const card = $(`<div class="card"><h2>${esc(spec.title)}</h2>
+      <p class="hint">${spec.hint}</p><div class="rows"></div>
+      <div class="actions">
+        <button class="btn" data-add>+ Add</button>
+        <button class="btn primary" data-save>Save</button>
+        <span class="saved">Saved</span>
+      </div>
+      <div class="tot"></div></div>`);
+  const rowsEl = card.querySelector(".rows");
+  let rows = JSON.parse(JSON.stringify(DATA[key] || []));
+
+  function draw() {
+    rowsEl.innerHTML = "";
+    if (!rows.length) rowsEl.appendChild($(`<div class="empty">Nothing yet. Click Add.</div>`));
+    rows.forEach((r, i) => {
+      const extra = key === "income"
+        ? `<button class="btn" data-replace="${i}" title="Close this entry today and start a new one">Replace</button>` : "";
+      const el = $(`<div class="row" data-i="${i}">
+        <div class="rowhead"><span class="idx">${String(i+1).padStart(2,"0")}</span>
+          <span style="display:flex;gap:6px;align-items:center">${extra}
+          <button class="link" data-del="${i}">Remove</button></span></div>
+        ${spec.row(r, i)}</div>`);
+      el.querySelectorAll("input,select").forEach(inp => {
+        inp.addEventListener("input", () => {
+          rows[i][inp.name] = inp.type === "checkbox" ? inp.checked : inp.value;
+          // Switching contribution type swaps which plan field is shown.
+          if (inp.name === "contribution_type" || inp.name === "goal_type") {
+            draw(); totals(); return;
+          }
+          totals(); pace(el, rows[i]);
+        });
+      });
+      el.querySelector("[data-del]").addEventListener("click", () => { rows.splice(i,1); draw(); totals(); });
+      const rep = el.querySelector("[data-replace]");
+      if (rep) rep.addEventListener("click", () => {
+        const today = new Date().toISOString().slice(0,10);
+        const copy = JSON.parse(JSON.stringify(rows[i]));
+        rows[i].effective_to = today;
+        copy.id = ""; copy.effective_from = today; copy.effective_to = "";
+        rows.splice(i+1, 0, copy); draw(); totals();
+      });
+      pace(el, r);
+      rowsEl.appendChild(el);
+    });
+  }
+  function pace(el, r) {
+    const box = el.querySelector("[data-pace]");
+    if (!box) return;
+    const inc = (DATA.derived.monthly_income_cents||0)/100;
+    const kind = r.contribution_type || "percent";
+    const plan = kind === "percent" ? inc * (parseFloat(r.percent_of_net_income)||0)/100
+                                    : (parseFloat(r.contribution_fixed)||0);
+    const gtype = r.goal_type || (parseFloat(r.target) ? "target" : "rate");
+
+    if (gtype === "rate") {
+      box.textContent = plan > 0
+        ? `Saving ${fmtD(plan)} a month \u2014 ${fmtD(plan*12)} a year. No target or date needed; `
+          + `the report checks whether that much actually moved.`
+        : "Set a percentage of after-tax income, or a fixed monthly amount.";
+      return;
+    }
+    const t = parseFloat(r.target)||0, c = parseFloat(r.current_balance)||0;
+    if (!t || !r.target_date) { box.textContent = "Set a target amount and a date."; return; }
+    const months = Math.max((new Date(r.target_date) - new Date())/(1000*60*60*24*30.44), 0.1);
+    const need = Math.max(t-c,0)/months;
+    let txt = `${fmtD(c)} of ${fmtD(t)} \u2014 needs ${fmtD(need)}/month over ${months.toFixed(1)} months.`;
+    if (plan > 0) {
+      const gap = plan - need;
+      txt += gap >= 0 ? `  Planning ${fmtD(plan)} \u2014 covers it with ${fmtD(gap)}/mo to spare.`
+        : `  Planning ${fmtD(plan)} \u2014 short ${fmtD(-gap)}/mo, arriving about `
+          + `${Math.round(Math.max(t-c,0)/plan - months)} months late.`;
+    }
+    box.textContent = txt;
+  }
+  function totals() {
+    const el = card.querySelector(".tot");
+    el.innerHTML = spec.total(rows).map(([l,v]) =>
+      `<div><div class="l">${esc(l)}</div><div class="v">${esc(v)}</div></div>`).join("");
+  }
+  card.querySelector("[data-add]").addEventListener("click", () => { rows.push(spec.add()); draw(); totals(); });
+  card.querySelector("[data-save]").addEventListener("click", async (ev) => {
+    ev.target.disabled = true;
+    try {
+      await api("/api/save/" + key, "POST", {rows});
+      DATA = await api("/api/config");
+      renderWarnings();
+      const s = card.querySelector(".saved"); s.classList.add("on");
+      setTimeout(() => s.classList.remove("on"), 1600);
+      rows = JSON.parse(JSON.stringify(DATA[key] || []));
+      draw(); totals();
+    } catch (e) { alert("Save failed: " + e.message); }
+    ev.target.disabled = false;
+  });
+  draw(); totals();
+  panel.appendChild(card);
+}
+
+function renderEnvelopes(panel) {
+  const env = (DATA.budget.envelopes_cents) || {};
+  const committed = new Set((DATA.fixed||[]).map(f => f.category));
+  const cats = DATA.categories.filter(c =>
+    !["Income","Transfer","Savings"].includes(c) && !committed.has(c));
+  const card = $(`<div class="card"><h2>Discretionary envelopes</h2>
+    <p class="hint">Monthly limits for the spending you actually decide on each week.
+    Categories covered by a fixed expense are left out — a mortgage is not something to
+    come in under. Leave a category blank for no budget.</p>
+    <table><thead><tr><th>Category</th><th class="n">Per month</th></tr></thead>
+    <tbody></tbody></table>
+    <div class="actions" style="margin-top:14px">
+      <button class="btn" data-propose>Propose from my actuals</button>
+      <button class="btn primary" data-save>Save</button>
+      <span class="saved">Saved</span></div>
+    <div class="tot"></div></div>`);
+  const tb = card.querySelector("tbody");
+  cats.forEach(c => {
+    const tr = $(`<tr><td>${esc(c)}</td><td class="n">
+      <input data-cat="${esc(c)}" inputmode="decimal" value="${env[c] ? (env[c]/100).toFixed(2) : ""}" placeholder="—"></td></tr>`);
+    tr.querySelector("input").addEventListener("input", totals);
+    tb.appendChild(tr);
+  });
+  function totals() {
+    const m = [...card.querySelectorAll("[data-cat]")].reduce((a,i)=>a+(parseFloat(i.value)||0),0);
+    const inc=(DATA.derived.monthly_income_cents||0)/100, fix=(DATA.derived.fixed_monthly_cents||0)/100;
+    card.querySelector(".tot").innerHTML =
+      `<div><div class="l">Envelopes total</div><div class="v">$${m.toLocaleString("en-US",{minimumFractionDigits:2})}</div></div>`
+    + `<div><div class="l">+ fixed commitments</div><div class="v">$${fix.toLocaleString("en-US",{maximumFractionDigits:0})}</div></div>`
+    + `<div><div class="l">vs net income</div><div class="v">${inc?"$"+inc.toLocaleString("en-US",{maximumFractionDigits:0}):"—"}</div></div>`;
+  }
+  card.querySelector("[data-propose]").addEventListener("click", async (ev) => {
+    ev.target.disabled = true;
+    try {
+      const p = await api("/api/propose");
+      if (!Object.keys(p).length) alert("Not enough transaction history yet. Import some CSVs first.");
+      card.querySelectorAll("[data-cat]").forEach(i => {
+        const v = p[i.dataset.cat]; if (v) i.value = (v/100).toFixed(2);
+      });
+      totals();
+    } catch(e){ alert("Could not propose: " + e.message); }
+    ev.target.disabled = false;
+  });
+  card.querySelector("[data-save]").addEventListener("click", async (ev) => {
+    ev.target.disabled = true;
+    const envelopes = {};
+    card.querySelectorAll("[data-cat]").forEach(i => { if (parseFloat(i.value)) envelopes[i.dataset.cat] = i.value; });
+    try {
+      await api("/api/save/budget", "POST", {envelopes});
+      DATA = await api("/api/config"); renderWarnings();
+      const s = card.querySelector(".saved"); s.classList.add("on");
+      setTimeout(()=>s.classList.remove("on"),1600);
+    } catch(e){ alert("Save failed: " + e.message); }
+    ev.target.disabled = false;
+  });
+  totals();
+  panel.appendChild(card);
+}
+
+function renderFiles(panel) {
+  const st = DATA.status || {};
+  const card = $(`<div class="card"><h2>Transaction CSVs</h2>
+    <p class="hint">Drop credit-card and checking exports here. They are copied into
+    <code>data/inbox/</code> and stay on this machine. Re-importing an overlapping date range is
+    safe — duplicates are detected and skipped.</p>
+    <div class="drop" id="drop">Drop CSV files here, or click to choose
+      <input type="file" id="file" multiple accept=".csv,.txt,.tsv" hidden></div>
+    <div class="actions" style="margin-top:14px">
+      <button class="btn primary" data-ingest>Import waiting files</button>
+      <span class="saved">Done</span></div>
+    <div class="tot">
+      <div><div class="l">In ledger</div><div class="v">${st.transactions ?? 0}</div></div>
+      <div><div class="l">Uncategorized</div><div class="v">${st.uncategorized ?? 0}</div></div>
+      <div><div class="l">Accounts</div><div class="v">${(st.accounts||[]).length}</div></div>
+      <div><div class="l">Range</div><div class="v" style="font-size:14px">${esc(st.first_date||"—")} – ${esc(st.last_date||"—")}</div></div>
+    </div>
+    <pre class="out" hidden></pre></div>`);
+  const drop = card.querySelector("#drop"), file = card.querySelector("#file");
+  const out = card.querySelector(".out");
+
+  async function upload(files) {
+    for (const f of files) {
+      const buf = await f.arrayBuffer();
+      let bin = ""; const bytes = new Uint8Array(buf);
+      for (let i=0;i<bytes.length;i+=8192) bin += String.fromCharCode(...bytes.subarray(i,i+8192));
+      try {
+        const r = await api("/api/upload","POST",{name:f.name, content: btoa(bin)});
+        log(`uploaded ${r.saved} (${(r.bytes/1024).toFixed(1)} KB)`);
+      } catch(e){ log(`FAILED ${f.name}: ${e.message}`); }
+    }
+  }
+  function log(s){ out.hidden = false; out.textContent += s + "\n"; out.scrollTop = out.scrollHeight; }
+
+  drop.addEventListener("click", () => file.click());
+  file.addEventListener("change", () => upload(file.files));
+  ["dragenter","dragover"].forEach(ev => drop.addEventListener(ev, e => {
+    e.preventDefault(); drop.classList.add("over"); }));
+  ["dragleave","drop"].forEach(ev => drop.addEventListener(ev, e => {
+    e.preventDefault(); drop.classList.remove("over"); }));
+  drop.addEventListener("drop", e => upload(e.dataTransfer.files));
+
+  card.querySelector("[data-ingest]").addEventListener("click", async (ev) => {
+    ev.target.disabled = true;
+    try {
+      const r = await api("/api/ingest","POST",{});
+      out.hidden = false;
+      out.textContent = r.results.length
+        ? r.results.map(x => x.error
+            ? `${x.file}\n  FAILED: ${x.error}`
+            : `${x.file}\n  account ${x.account} | ${x.date_range[0]} .. ${x.date_range[1]}\n`
+              + `  ${x.new} new, ${x.duplicates} duplicates, ${x.uncategorized} uncategorized`
+              + (x.sign_flipped ? "\n  ! signs flipped (file listed spending as positive)" : "")
+              + (x.warnings||[]).map(w => "\n  ! " + w).join("")).join("\n\n")
+        : "Nothing waiting in data/inbox/.";
+      DATA = await api("/api/config"); renderWarnings(); render();
+    } catch(e){ alert("Import failed: " + e.message); }
+    ev.target.disabled = false;
+  });
+  panel.appendChild(card);
+}
+
+document.querySelectorAll(".tabs button").forEach(b =>
+  b.addEventListener("click", () => {
+    TAB = b.dataset.tab;
+    history.replaceState(null, "", "?tab=" + TAB);
+    render();
+  }));
+window.addEventListener("popstate", () => {
+  const t = new URLSearchParams(location.search).get("tab");
+  if (TABS.includes(t)) { TAB = t; render(); }
+});
+load().catch(e => document.getElementById("panel").innerHTML =
+  `<div class="card"><p class="hint">Could not load config: ${esc(e.message)}</p></div>`);
+</script>
+</body>
+</html>

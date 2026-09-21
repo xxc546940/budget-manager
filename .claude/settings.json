@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -m budget:*)",
+      "Bash(python3 tests/test_budget.py)",
+      "Read(./data/**)",
+      "Read(./config/**)",
+      "Read(./reports/**)",
+      "Write(./reports/**)",
+      "Write(/tmp/narrative.json)"
+    ]
+  }
+}

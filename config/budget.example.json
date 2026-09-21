@@ -1,0 +1,25 @@
+{
+  "household": {
+    "name": "Our Household",
+    "members": [
+      "Member A",
+      "Member B"
+    ],
+    "note": "Pooled finances: all accounts merge into one ledger, no per-person split."
+  },
+  "envelopes_cents": {},
+  "settings": {
+    "currency": "USD",
+    "week_starts": "monday",
+    "large_transaction_cents": 20000,
+    "exclude_accounts": [],
+    "lang": "en",
+    "_lang_note": "Page language: 'en' or 'zh-Hans'. Currency is independent - set currency to USD, CNY, EUR, GBP, TWD, HKD etc. Override per run with --lang / --currency.",
+    "email_from": "",
+    "email_to": [],
+    "_email_note": "email_from is your Gmail address. email_to / email_cc / email_bcc accept a single address or a list. The app password is NEVER stored here - it lives in a file you point at with --password-file. See scripts/send_report.py.",
+    "email_cc": [],
+    "email_bcc": []
+  },
+  "note": "Discretionary spending envelopes, in cents per month. Fixed commitments (mortgage, car loan, daycare) belong in fixed_expenses.json, not here. Run `python3 -m budget propose-budget` to fill this from actuals."
+}
