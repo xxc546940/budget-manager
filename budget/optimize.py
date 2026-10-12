@@ -47,6 +47,26 @@ def _months_back(today: date, n: int) -> tuple[date, date]:
 MIN_HISTORY_DAYS = 28
 
 
+def _trailing(cfg: dict, today: date, n: int) -> tuple[date, date, float]:
+    """The n complete months before this one, as the ledger can actually see them.
+
+    Returns (start, end, months), where months is how much time the window
+    really covers. `analysis_start` clamps the window, so dividing its total by
+    n would spread 24 days of spending over three months and report every
+    monthly figure several times too low. When the clamp leaves fewer than
+    MIN_HISTORY_DAYS inside complete months, the window runs on through today
+    so it holds every day of history there is.
+    """
+    start, end = _months_back(today, n)
+    floor = cfgmod.analysis_start(cfg)
+    if not floor or floor <= start:
+        return start, end, n
+    start = floor
+    if (end - start).days + 1 < MIN_HISTORY_DAYS:
+        end = today
+    return start, end, max((end - start).days + 1, 1) / 30.44
+
+
 def history_days(cfg: dict, today: date) -> int:
     """Days of ledger actually in scope for trailing comparisons."""
     floor = cfgmod.analysis_start(cfg)
@@ -109,12 +129,12 @@ def subscription_candidates(conn, cfg: dict, today: date) -> list[dict]:
 def fee_candidates(conn, cfg: dict, today: date) -> list[dict]:
     """Bank and card fees. Pure waste - nothing is consumed for the money."""
     ex = cfg["settings"].get("exclude_accounts", [])
-    start, end = _months_back(today, 3)
+    start, end, months = _trailing(cfg, today, 3)
     fees = [t for t in analyze.spend_only(fetch_window(conn, cfg, start, end), ex) if t.category == "Fees"]
     if not fees:
         return []
     total = sum(abs(t.amount_cents) for t in fees)
-    monthly = round(total / 3)
+    monthly = round(total / months)
     if monthly < 500:
         return []
     merchants = ", ".join(sorted({t.merchant for t in fees})[:3])
@@ -130,8 +150,8 @@ def fee_candidates(conn, cfg: dict, today: date) -> list[dict]:
         "annual_cents": monthly * 12,
         "difficulty": "easy",
         "confidence": "high",
-        "evidence": f"{len(fees)} fee charges over 3 months ({merchants}) - nothing received in return",
-        "facts": {"count": len(fees), "months": 3, "merchants": merchants},
+        "evidence": f"{len(fees)} fee charges over {months:.1f} months ({merchants}) - nothing received in return",
+        "facts": {"count": len(fees), "months": round(months, 1), "merchants": merchants},
         "reversible": True,
     }]
 
@@ -201,7 +221,7 @@ def habit_candidates(conn, cfg: dict, today: date) -> list[dict]:
     """Frequent small purchases at one merchant - the classic slow leak."""
     ex = cfg["settings"].get("exclude_accounts", [])
     sub_ids, _ = _subscription_ids(conn, cfg, today)
-    start, end = _months_back(today, 3)
+    start, end, months = _trailing(cfg, today, 3)
     rows = [t for t in analyze.spend_only(fetch_window(conn, cfg, start, end), ex)
             if t.id not in sub_ids and t.category not in UNTOUCHABLE]
 
@@ -211,9 +231,9 @@ def habit_candidates(conn, cfg: dict, today: date) -> list[dict]:
 
     out = []
     for merchant, ts in groups.items():
-        per_month = len(ts) / 3
+        per_month = len(ts) / months
         avg = statistics.mean(abs(t.amount_cents) for t in ts)
-        monthly = round(sum(abs(t.amount_cents) for t in ts) / 3)
+        monthly = round(sum(abs(t.amount_cents) for t in ts) / months)
         # A habit: frequent, individually small, and adds up.
         if per_month < 4 or avg > 5000 or monthly < 4000:
             continue
@@ -268,7 +288,7 @@ def discretionary_levers(conn, cfg: dict, today: date) -> dict:
     """
     ex = cfg["settings"].get("exclude_accounts", [])
     committed = {x.get("category") for x in cfgmod.fixed_expenses(cfg, today)}
-    start, end = _months_back(today, 3)
+    start, end, months = _trailing(cfg, today, 3)
     rows_tx = analyze.spend_only(fetch_window(conn, cfg, start, end), ex)
 
     per_cat: dict[str, int] = defaultdict(int)
@@ -280,7 +300,7 @@ def discretionary_levers(conn, cfg: dict, today: date) -> dict:
 
     levers, disc_total, fixed_total = [], 0, 0
     for cat, total in sorted(per_cat.items(), key=lambda kv: -kv[1]):
-        monthly = round(total / 3)
+        monthly = round(total / months)
         if cat in UNTOUCHABLE or cat in committed:
             fixed_total += monthly
             continue
@@ -290,7 +310,7 @@ def discretionary_levers(conn, cfg: dict, today: date) -> dict:
         levers.append({
             "category": cat,
             "monthly_cents": monthly,
-            "txns_per_month": round(counts[cat] / 3),
+            "txns_per_month": round(counts[cat] / months),
             "cut_10_cents": round(monthly * 0.10),
             "cut_25_cents": round(monthly * 0.25),
             "cut_40_cents": round(monthly * 0.40),
@@ -303,6 +323,11 @@ def discretionary_levers(conn, cfg: dict, today: date) -> dict:
         "sufficient_history": days >= MIN_HISTORY_DAYS,
         "discretionary_monthly_cents": disc_total,
         "committed_monthly_cents": fixed_total,
+        # What the monthly figures were measured over, so the page can say so.
+        "window_start": start.isoformat(),
+        "window_end": end.isoformat(),
+        "window_days": (end - start).days + 1,
+        "complete_months": months == 3,
         "total_at_10_cents": sum(l["cut_10_cents"] for l in levers),
         "total_at_25_cents": sum(l["cut_25_cents"] for l in levers),
         "total_at_40_cents": sum(l["cut_40_cents"] for l in levers),

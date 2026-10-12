@@ -119,10 +119,30 @@ STRINGS: dict[str, dict[str, str]] = {
         "zh-Hans": "缺口比你全部可调整支出（每月 {amount}）还要大。"
                    "<b>再怎么省也补不上。</b>必须调整目标日期或目标金额。"},
 
+    "verdict_deep_rate": {
+        "en": "The rest — {amount}/mo — would mean cutting <b>{pct}% of every discretionary "
+              "dollar</b>: groceries, dining, transport, all of it. That is a different kind of "
+              "decision from cancelling a subscription; a lower savings rate may be the more "
+              "honest target. The menu below shows what each level of restraint is worth.",
+        "zh-Hans": "剩下的每月 {amount}，意味着<b>每一笔可调整支出都要砍掉 {pct}%</b>："
+                   "买菜、吃饭、交通，全都要减。这和取消一个订阅是完全不同性质的决定，"
+                   "把储蓄比例调低可能是更现实的目标。下面的取舍清单列出了各档力度分别值多少钱。"},
+    "verdict_impossible_rate": {
+        "en": "The shortfall is larger than your entire discretionary spending of {amount}/mo. "
+              "<b>No amount of spending restraint closes it.</b> The savings rate has to come "
+              "down, or a committed cost has to change.",
+        "zh-Hans": "缺口比你全部可调整支出（每月 {amount}）还要大。"
+                   "<b>再怎么省也补不上。</b>必须调低储蓄比例，或改变某项刚性支出。"},
+
     # --- spending summary ---
     "summary_h": {"en": "Spending summary", "zh-Hans": "支出概览"},
     "typical_month": {"en": "<b>A typical month</b> — averaged over the last 3 complete months.",
                       "zh-Hans": "<b>典型月份</b> —— 按最近 3 个完整月份取平均。"},
+    "typical_month_scaled": {
+        "en": "<b>A typical month</b> — scaled from the {days} days between {start} and {end}. "
+              "Whole months replace this once three have been recorded.",
+        "zh-Hans": "<b>典型月份</b> —— 由 {start} 至 {end} 共 {days} 天的数据折算成月。"
+                   "积累满三个完整月份后改用完整月份平均。"},
     "committed_key": {"en": "Committed {amount}/mo · {pct}%",
                       "zh-Hans": "刚性支出 每月 {amount} · {pct}%"},
     "discretionary_key": {"en": "Discretionary {amount}/mo · {pct}%",

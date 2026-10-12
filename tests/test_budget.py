@@ -1440,6 +1440,33 @@ def test_short_history_admits_it_instead_of_claiming_zero_discretionary():
         assert "12 days of comparable history" in html
 
 
+def test_clamped_levers_scale_by_days_seen_not_three_months():
+    # analysis_start on Sep 7 leaves 24 days inside "the last 3 complete months".
+    # Dividing those 24 days by 3 reported every monthly figure ~4x too low and
+    # turned an achievable cut into "no amount of restraint closes it".
+    from budget import optimize
+    cfg = _cfg()
+    cfg["settings"]["analysis_start"] = "2026-09-07"
+    with tempfile.TemporaryDirectory() as tmp:
+        conn = ledger.connect(Path(tmp) / "l.db")
+        rows = [Transaction(date(2026, 9, 7) + timedelta(days=i), -10000, f"shop{i}",
+                            "visa", category="Shopping") for i in range(35)]
+        ledger.insert(conn, rows)
+        today = date(2026, 10, 11)
+        levers = optimize.discretionary_levers(conn, cfg, today)
+        # Too few days in complete months: the window runs through today.
+        assert levers["window_start"] == "2026-09-07"
+        assert levers["window_end"] == "2026-10-11"
+        assert levers["complete_months"] is False
+        # $100 a day is about $3,044 a month, not 35 days of it divided by 3.
+        assert abs(levers["discretionary_monthly_cents"] - 304400) < 100
+
+        from budget.i18n import Translator
+        from budget.recommend_html import _candidates_block
+        html = _candidates_block([], {"sufficient_history": True}, Translator(), levers)
+        assert "running at its own normal" not in html
+
+
 def test_enough_history_still_reports_depth():
     from budget import optimize
     cfg = _cfg(income=[{"name": "pay", "net_monthly_cents": 800000}],

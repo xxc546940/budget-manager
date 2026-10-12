@@ -202,7 +202,7 @@ def _gap_block(gap: dict, levers: dict, goals: list[dict], t: Translator,
         f'{t("you_keeping") if residual else t("you_saving")}'
         f'<span class="how">'
         f'{t("keeping_how", days=days) if residual else t("saving_how")}</span></div>'
-        f'<div class="amt">&minus;{t.money(gap.get("currently_saving_cents", 0))}{suffix}</div>'
+        f'<div class="amt">{t.money(gap.get("currently_saving_cents", 0))}{suffix}</div>'
         f'</div>')
 
     rows.append(
@@ -236,11 +236,11 @@ def _gap_block(gap: dict, levers: dict, goals: list[dict], t: Translator,
                    + "</div>")
     elif req is not None and depth.get("achievable"):
         verdict = ('<div class="verdict">'
-                   + t("verdict_deep", amount=t.money(gap["uncovered_cents"]), pct=f"{req:g}")
+                   + t("verdict_deep_rate" if all_rate else "verdict_deep", amount=t.money(gap["uncovered_cents"]), pct=f"{req:g}")
                    + "</div>")
     else:
         verdict = ('<div class="verdict">'
-                   + t("verdict_impossible",
+                   + t("verdict_impossible_rate" if all_rate else "verdict_impossible",
                        amount=t.money(levers["discretionary_monthly_cents"])) + "</div>")
 
     return (
@@ -266,6 +266,13 @@ def _summary_block(rep: dict, levers: dict, t: Translator) -> str:
         f'<span><i class="sw" style="background:var(--fill)"></i>'
         + t("discretionary_key", amount=t.money(disc), pct=f"{100-cp:.0f}") + '</span></div>')
 
+    # Before three whole months exist the figures are scaled from fewer days;
+    # calling them "the last 3 complete months" would misdescribe them.
+    typical = (t("typical_month") if levers.get("complete_months", True)
+               else t("typical_month_scaled", days=levers.get("window_days", 0),
+                      start=t.date(levers.get("window_start", "")),
+                      end=t.date(levers.get("window_end", ""))))
+
     cats = [c for c in rep["categories"] if c["amount_cents"]][:8]
     scale = max([c["amount_cents"] for c in cats] + [1])
     bars = "".join(
@@ -277,7 +284,7 @@ def _summary_block(rep: dict, levers: dict, t: Translator) -> str:
 
     return (
         f'<div class="card"><h2>{t("summary_h")}</h2>'
-        f'<p class="note" style="margin:0 0 8px">{t("typical_month")}</p>'
+        f'<p class="note" style="margin:0 0 8px">{typical}</p>'
         f'{split}'
         f'<p class="note" style="margin:4px 0 20px">{t("only_discretionary")}</p>'
         f'<p class="note" style="margin:0 0 10px">'
@@ -285,9 +292,14 @@ def _summary_block(rep: dict, levers: dict, t: Translator) -> str:
         + bars + "</div>")
 
 
-def _candidates_block(cands: list[dict], gap: dict, t: Translator) -> str:
+def _candidates_block(cands: list[dict], gap: dict, t: Translator,
+                      levers: dict | None = None) -> str:
     if not cands:
-        key = "no_candidates_history" if not gap.get("sufficient_history", True) else "no_candidates"
+        # "Running at its own normal" needs whole months to compare; without
+        # them the honest answer is that unusual cannot yet be told from usual.
+        thin = (not gap.get("sufficient_history", True)
+                or not (levers or {}).get("complete_months", True))
+        key = "no_candidates_history" if thin else "no_candidates"
         return (f'<div class="card"><h2>{t("where_from_h")}</h2>'
                 f'<p class="note">{t(key)}</p></div>')
     picked = {c["id"] for c in gap.get("picks", [])}
@@ -458,7 +470,7 @@ def render(data: dict, lang: str = "en", currency: str = "USD") -> str:
 
   {_gap_block(gap, levers, data["goals"], t, data["cashflow"]["monthly"]["income_cents"])}
   {_summary_block(rep, levers, t)}
-  {_candidates_block(data["candidates"], gap, t)}
+  {_candidates_block(data["candidates"], gap, t, levers)}
   {_levers_block(levers, t)}
   {_week_block(data["next_week"], t)}
   {_month_block(data["next_month"], data["candidates"], t)}
